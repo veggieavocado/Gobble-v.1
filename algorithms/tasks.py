@@ -42,6 +42,6 @@ def process_wanted_data():
     print(skill_count)
 
     w.save_data_to_db('COMPANY_URLS', url_dict)
-    w.save_data_to_db('TOP_SKILLS', top_skills)
+    w.save_data_to_db('TOP_SKILLS', top_skill)
     w.save_data_to_db('WANTED_SKILL_COMPS', wantedjob_list)
     w.save_data_to_db('SKILL_COUNTS', skill_count)

@@ -44,11 +44,11 @@ CAPITAL_NAMES = ['aws', 'api', 'c', 'java', 'ui', 'us', 'css', 'html', 'db', 'sq
                 'rds', 'mvp', 'http', 'tdd', 'pm', 'gcp', 'spa', 'kpi', 'basic',\
                 'mvc', 'eos', 'dbms', 'km']
 
-FRONTEND_NAMES = ['프론트엔드', 'Frontend', 'Front-end']
-BACKEND_NAMES = ['백엔드', 'Backend', 'Back-end']
+FRONTEND_NAMES = ['프론트엔드', 'Frontend', 'Front-end', 'Front-End']
+BACKEND_NAMES = ['백엔드', 'Backend', 'Back-end', 'Back-End']
 IOS_NAMES = ['iOS', 'IOS', '애플']
 ANDROID_NAMES = ['Android', 'ANDROID', '안드로이드']
-SERVER_NAMES = ['서버', 'AWS', '인프라', '시스템']
+SERVER_NAMES = ['서버', 'AWS', '인프라', '시스템', 'System']
 DEVOPS_NAMES = ['Devops', 'DevOps', 'Dev Ops', 'Dev ops', '데브옵스', 'QA']
 DATA_NAMES = ['데이터', 'Data', 'Deep', 'Machine', '딥러닝', '머신러닝', '빅데이터', 'Analytics', 'AI', 'A.I' '인공지능', 'Bigdata']
-BLOCKCHAIN_NAMES = ['Blockchain', '블록체인', '암포화폐', 'Solidity', 'dApp']
+BLOCKCHAIN_NAMES = ['Blockchain', '블록체인', '암호화폐', 'Solidity', 'dApp']

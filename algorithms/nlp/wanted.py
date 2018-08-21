@@ -256,5 +256,5 @@ class WantedProcessor(object):
     def save_data_to_db(self, name, data):
         str_data = json.dumps(data)
         db_data = WantedData(data_name=name, data=str_data)
-        db_data.save()
+        db_data.save(using='contents')
         print('{} saved'.format(name))
