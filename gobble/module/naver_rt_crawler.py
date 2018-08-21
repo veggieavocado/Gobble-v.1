@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Aug 17 05:15:30 2018
-
 @author: LeeMH
 """
 from bs4 import BeautifulSoup
@@ -57,12 +56,13 @@ class NaverRealtimeCrawler(Crawler):
             soup = self.html_parser(self.req)
             url = self.fin_nhn.format(url)
             title = self.soup_find(soup, 'h3').text.replace('\n','').replace('\t','').strip()
-            if url in checklist:
+            checkurl = re.sub(r'&page=\d+$', '', url)
+            if checkurl in checklist:
                 print('Already up-to-date.')
                 continue
             upload_time = self.soup_find(soup, 'span', {'class':'article_date'}).text
             media = self.soup_find(soup, 'span', {'class':'press'}).img['title']
-            data_dict = {'title':title, 'media':media, 'url':url, 'data_type':'R', 'upload_time': upload_time}
+            data_dict = {'title':title, 'media':media, 'url':checkurl, 'data_type':'R', 'upload_time': upload_time}
             data_list.append(data_dict)
         print(len(data_list))
         return data_list
