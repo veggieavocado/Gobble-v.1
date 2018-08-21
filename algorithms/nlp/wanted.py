@@ -3,6 +3,7 @@ from nltk import pos_tag, FreqDist
 from nltk.corpus import stopwords
 from collections import Counter
 from time import time
+import json
 twitter = Okt()
 hannanum = Hannanum()
 
@@ -10,7 +11,21 @@ import requests
 import operator
 
 # 외부에서 예외 처리 변수를 불러오기
-from .exceptions_data import CAPITAL_NAMES, CHANGE_NAME_DICT, EXCEPTION_LIST, WANTED_PASS_LIST
+from .exceptions_data import (
+    CAPITAL_NAMES,
+    CHANGE_NAME_DICT,
+    EXCEPTION_LIST,
+    WANTED_PASS_LIST,
+
+    FRONTEND_NAMES,
+    BACKEND_NAMES,
+    IOS_NAMES,
+    ANDROID_NAMES,
+    SERVER_NAMES,
+    DEVOPS_NAMES,
+    DATA_NAMES,
+    BLOCKCHAIN_NAMES,
+)
 
 from contents.models import (
     WantedContent,
@@ -66,29 +81,82 @@ class WantedProcessor(object):
         print(end_time - start_time)
         return company_dict, tech_list, url_dict
 
+    # 데이터 프로세싱 시작 전에 모델에서 필요한 데이터 모두 가져오기
     def wanted_model(self):
         # 관련 컨텐츠 모델을 가져온다
         wanted_content_model = WantedContent.objects.using('contents').all()
         # 채워넣을 빈 데이터를 만든다
-        tech_list = []
-        company_dict = {}
-        url_dict = {}
+        title_list = [] # 백엔드, 프론트엔드, 서버 등등 개발자의 총 공고수를 계산하기 위해 필요
+        tech_list = [] # 회사들이 사용하는 모든 기술의 집합
+        company_dict = {} # 각 회사별로 어떤 기술을 사용하는지 모음
+        url_dict = {} # 회사별 공고 url 모음
         # 루프를 돌려 필요한 데이터를 위에서 만든 빈 데이터 안에 채워넣어 준다
         for i in range(len(wanted_content_model)):
+            title = wanted_content_model[i].title
             content = wanted_content_model[i].content
             company = wanted_content_model[i].company
             url = wanted_content_model[i].url
+            title_list.append(title)
             if company in url_dict.keys():
-                url_dict[company].append(url)
+                url_dict[company][title] = url
             else:
-                url_dict[company] = [url]
+                url_dict[company] = dict()
+                url_dict[company][title] = url
             company_dict[company] = list(set(self.alpha_list(content)))
             temp_list = self.alpha_list(content)
             tech_list = tech_list + temp_list
         company_dict = company_dict
         tech_list = tech_list
         url_dict = url_dict
-        return company_dict, tech_list, url_dict
+        return title_list, company_dict, tech_list, url_dict
+
+    def check_if_skill_in_title(self, title, skill_list):
+        skill_exists = 0
+        for skill in skill_list:
+            if skill in title:
+                skill_exists = 1
+        return skill_exists
+
+    def create_skill_category_count(self, title_list):
+        skill_count = {
+            'Frontend': 0,
+            'Backend': 0,
+            'iOS': 0,
+            'Android': 0,
+            'Server': 0,
+            'Devops': 0,
+            'Data Scientist': 0,
+            'Blockchain': 0
+        }
+
+        for title in title_list:
+            frontend = self.check_if_skill_in_title(title, FRONTEND_NAMES)
+            backend = self.check_if_skill_in_title(title, BACKEND_NAMES)
+            ios = self.check_if_skill_in_title(title, IOS_NAMES)
+            android = self.check_if_skill_in_title(title, ANDROID_NAMES)
+            server = self.check_if_skill_in_title(title, SERVER_NAMES)
+            devops = self.check_if_skill_in_title(title, DEVOPS_NAMES)
+            data = self.check_if_skill_in_title(title, DATA_NAMES)
+            blockchain = self.check_if_skill_in_title(title, BLOCKCHAIN_NAMES)
+
+            if frontend == 1:
+                skill_count['Frontend'] += 1
+            if backend == 1:
+                skill_count['Backend'] += 1
+            if ios == 1:
+                skill_count['iOS'] += 1
+            if android == 1:
+                skill_count['Android'] += 1
+            if server == 1:
+                skill_count['Server'] += 1
+            if devops == 1:
+                skill_count['Devops'] += 1
+            if data == 1:
+                skill_count['Data Scientist'] += 1
+            if blockchain == 1:
+                skill_count['Blockchain'] += 1
+
+        return skill_count
 
     # 예외 처리 함수 : 중복되지만 key 값이 다른 함수 합치기
     def exception_process(self, data, parent_key, child_key, func):
@@ -184,3 +252,9 @@ class WantedProcessor(object):
         for data in sorted_tuple:
             result_dict[data[0]] = data[1]
         return result_dict
+
+    def save_data_to_db(self, name, data):
+        str_data = json.dumps(data)
+        db_data = WantedData(data_name=name, data=str_data)
+        db_data.save()
+        print('{} saved'.format(name))
