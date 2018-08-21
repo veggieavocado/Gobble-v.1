@@ -1,0 +1,28 @@
+sudo: required
+language: python
+python:
+  - '3.6'
+dist: trusty
+services:
+  - docker
+addons:
+  apt:
+    packages:
+      - docker-ce
+env:
+  global:
+    - DJANGO_VERSION=2.0
+    - TRAVIS=True
+    - RUN_TEST_SCRIPT="docker exec -it molecular-django python -m pytest -n 3 --cov-config .coveragerc --cov=. -v"
+before_script:
+  - docker run --name molecular-cache -d -p 127.0.0.1:6379:6379 redis redis-server --requirepass molecularredispassword --appendonly yes
+  - docker build -t django-app:testing .
+  - docker run --name molecular-django -d -e DOCKER_CONTAINER=True --link molecular-cache:redis django-app:testing
+script:
+  - ${RUN_TEST_SCRIPT}
+notifications:
+  email:
+    - we.veggieavocado@gmail.com
+    - ppark9553@gmail.com
+  on_success: always
+  on_failure: always

@@ -1,0 +1,7 @@
+***** 포트에 돌고 있는 프로그램 죽이기 (맥) *****
+netstat -vanp tcp | grep 3000  --> 포트에 돌아가고 있는 프로그램 리스트
+lsof -P | grep ':3000' | awk '{print $2}' --> 포트에 돌아가고 있는 프로그램 프로세스 ID 프린트
+kill -9 "PID" --> 프레세스 종료
+
+***** 도커 컨테이너에서 배쉬쉘 실행시키기 *****
+docker exec -it <container-id> bash

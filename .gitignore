@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+migrations/
+configs/
+*.pyc
+db.sqlite3
+.pytest_cache/
+api_env/
+data/
+crypt_key.py
+veggieavocado_keypair.pem
+deeplearning_test/
+.ipynb_checkpoints/

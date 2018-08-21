@@ -1,0 +1,111 @@
+version: "3"
+
+services:
+  nginx:
+    build: ./config/nginx
+    container_name: molecular-nginx
+    depends_on:
+      - web
+    links:
+      - web:web
+    networks:
+      - molecular
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+
+  web:
+    build: .
+    container_name: molecular-django
+    depends_on:
+      - redis
+      - celery
+    environment:
+      - DOCKER_CONTAINER=True
+    links:
+      - redis:redis
+    networks:
+      - molecular
+    restart: unless-stopped
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+
+  celery:
+    build:
+      context: .
+      dockerfile: Celerydocker
+    container_name: molecular-celery
+    depends_on:
+      - rabbit
+    environment:
+      - DOCKER_CONTAINER=True
+    links:
+      - rabbit:rabbit
+    networks:
+      - molecular
+    restart: unless-stopped
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+
+  celerybeat:
+    build:
+      context: .
+      dockerfile: Beatdocker
+    container_name: molecular-celerybeat
+    depends_on:
+      - rabbit
+    environment:
+      - DOCKER_CONTAINER=True
+    links:
+      - rabbit:rabbit
+    networks:
+      - molecular
+    restart: unless-stopped
+
+  flower:
+    build:
+      context: .
+      dockerfile: Flowerdocker
+    container_name: molecular-flower
+    depends_on:
+      - celery
+      - celerybeat
+    environment:
+      - DOCKER_CONTAINER=True
+    networks:
+      - molecular
+    ports:
+      - 5555:5555
+    restart: unless-stopped
+
+  redis:
+    container_name: molecular-redis
+    command: redis-server --requirepass molecularredispassword --appendonly yes
+    image: redis
+    networks:
+      - molecular
+    ports:
+      - 6379:6379
+    restart: unless-stopped
+    volumes:
+      - cache_data:/data
+
+  rabbit:
+    container_name: molecular-rabbit
+    environment:
+      - RABBITMQ_DEFAULT_USER=molecularuser
+      - RABBITMQ_DEFAULT_PASS=molecularrabbitmqpassword
+    image: rabbitmq:3-management
+    networks:
+      - molecular
+    ports:
+      - 5672:5672
+      - 15672:15672
+    restart: unless-stopped
+
+networks:
+  molecular:
+    driver: bridge
+
+volumes:
+  cache_data:
