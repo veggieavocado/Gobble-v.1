@@ -18,9 +18,14 @@ def debug_task(self):
 from celery.schedules import crontab
 
 app.conf.beat_schedule = {
-    # 'hello': {
-    #     'task': 'algorithms.tasks.hello',
-    #     'schedule': 10.0,
-    #     'args': (),
-    # }
+    'naver_major_new': {
+        'task': 'gobble.tasks.naver_major_new',
+        'schedule': timedelta(hours=3),
+        'args': (),
+    },
+    'naver_realtime_new': {
+        'task': 'gobble.tasks.naver_realtime_new',
+        'schedule': timedelta(minutes=1),
+        'args': (),
+    }
 }
