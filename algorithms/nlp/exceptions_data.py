@@ -37,6 +37,8 @@ CHANGE_NAME_DICT = {
     'front': 'Frontend',
     'back': 'Backend',
     'dynamodb':'DynamoDB',
+    'mongodb': 'MongoDB',
+    'postgresql': 'PostgreSQL'
 }
 
 CAPITAL_NAMES = ['aws', 'api', 'c', 'java', 'ui', 'us', 'css', 'html', 'db', 'sql', 'php',\
@@ -52,3 +54,9 @@ SERVER_NAMES = ['서버', 'AWS', '인프라', '시스템', 'System']
 DEVOPS_NAMES = ['Devops', 'DevOps', 'Dev Ops', 'Dev ops', '데브옵스', 'QA']
 DATA_NAMES = ['데이터', 'Data', 'Deep', 'Machine', '딥러닝', '머신러닝', '빅데이터', 'Analytics', 'AI', 'A.I' '인공지능', 'Bigdata']
 BLOCKCHAIN_NAMES = ['Blockchain', '블록체인', '암호화폐', 'Solidity', 'dApp']
+
+FRONTEND_SKILLS = ['Javascript', 'React.js', 'HTML', 'CSS', 'Angular.js', 'Vue.js', 'Webpack', 'jQuery', 'Redux', 'SPA', 'Sass']
+BACKEND_SKILLS = ['Node.js', 'PHP', 'Spring', 'Rails', 'Django']
+SERVER_SKILLS = ['AWS', 'Linux', 'Cloud', 'Azure', 'RDS', 'GCP', 'Apache', 'Oracle', 'Nginx']
+DEVOPS_SKILLS = ['Git', 'Docker', 'QA', 'CI', 'Jenkins', 'DevOps', 'Kubernetes', 'Ansible']
+DATA_SKILLS = ['MySQL', 'SQL', 'Redis', 'NoSQL', 'RDBMS', 'Hadoop', 'Spark', 'Elasticsearch', 'MongoDB', 'DynamoDB', 'PostgreSQL', 'Machine Learning', 'Deep Learning']

@@ -3,7 +3,7 @@ from nltk import pos_tag, FreqDist
 from nltk.corpus import stopwords
 from collections import Counter
 from time import time
-import json
+import redis, json
 twitter = Okt()
 hannanum = Hannanum()
 
@@ -25,6 +25,12 @@ from .exceptions_data import (
     DEVOPS_NAMES,
     DATA_NAMES,
     BLOCKCHAIN_NAMES,
+
+    FRONTEND_SKILLS,
+    BACKEND_SKILLS,
+    SERVER_SKILLS,
+    DEVOPS_SKILLS,
+    DATA_SKILLS,
 )
 
 from contents.models import (
@@ -32,6 +38,8 @@ from contents.models import (
     WantedUrl,
     WantedData,
 )
+
+from molecular.settings import IP_ADDRESS
 
 class WantedProcessor(object):
 
@@ -258,3 +266,35 @@ class WantedProcessor(object):
         db_data = WantedData(data_name=name, data=str_data)
         db_data.save(using='contents')
         print('{} saved'.format(name))
+
+    def save_data_to_cache(self, redis_client, key, value):
+        redis_client.delete(key)
+        redis_client.set(key, json.dumps(value))
+
+    def cache_wanted_page_data(self, skill_count):
+        redis_client = redis.Redis(host=IP_ADDRESS,
+                                   port=6379,
+                                   password='molecularredispassword')
+
+        # 캐싱할 데이터 정의내리는 곳/저장까지
+        ### 메인 색상: 초록(#00C73C), 파랑(#0183DA), 빨강(#FF385A), 주황(#FF6813), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
+
+        # 원티드 데이터 페이지 메인 랭크 테이블 데이터: 상위 5개 기술 기술명, 점유율, 공고수, 관련스타트업 4개
+        self.save_data_to_cache(redis_client, 'WANTED_TOP_5_SKILL:COUNT:COMPS_LIST', main_wantedjob_table_list)
+
+        # 원티드 기술점유율 도넛 하이차트 데이터: { 'name', 'y', 'showInLegend', 'states': {{'select': 'color'}, {'hover': 'color'}} }
+        # select - color: #FF385A, hover - color: #D1D1D1
+        # 100개 기술 모두의 정보가 들어가야하지만, 상위 6개만 showInLegend: true, 나머지는 false
+        self.save_data_to_cache(redis_client, 'WANTED_TOP_6_FOCUSED_SKILL:COUNT_CHART_DATA', )
+
+        # 원티드 직군별 공고수 바차트 데이터:
+        # 데이터 형식: [{'y', 'color'}, ... ]
+        self.save_data_to_cache(redis_client, 'WANTED_HIRE:COUNT_CHART_DATA', skill_count)
+
+        # 원티드 직군에서 사용 기술 공고수 바차트 데이터:
+        # 데이터 형식: [{'name', 'data': [{'y', 'color'}, ... ]}, ... ]
+        self.save_data_to_cache(redis_client, 'WANTED_HIRE_SKILLS_COUNT_CHART_DATA', )
+
+        self.save_data_to_cache(redis_client, 'WANTED_TOTAL_SKILL_COUNT_COMPS_LIST', wantedjob_list)
+
+        self.save_data_to_cache(redis_client, 'WANTED_HIRE_URL_DATA', url_dict)
