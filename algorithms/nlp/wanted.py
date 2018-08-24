@@ -57,66 +57,98 @@ class WantedProcessor(object):
         pos_alpha = [p[0].lower() for p in pos if p[1] == 'Alpha']
         return pos_alpha
 
-    # request wanted api
-    # 수집한 채용 데이터를 저장한 api에 요청으로 보내서 데이터를 저장하는 함수
-    def wanted_request(self):
-        start_time = time()
-        i = 1
-        tech_list = []
-        company_dict = {}
-        url_dict = {}
-        r = requests.get(self.wanted_contents_url.format(1))
-        while r.json()['next'] is not None:
-            r = requests.get(self.wanted_contents_url.format(i))
-            content_data = r.json()['results']
-            for j in range(len(content_data)):
-                content = content_data[j]['content']
-                company = content_data[j]['company']
-                content = content_data[j]['content']
-                url = content_data[j]['url']
-                if company in url_dict.keys():
-                    url_dict[company].append(url)
-                else:
-                    url_dict[company] = [url]
-                company_dict[company] = list(set(self.alpha_list(content)))
-                temp_list = self.alpha_list(content)
-                tech_list = tech_list + temp_list
-            i += 1
-        comapny_dict = company_dict
-        tech_list = tech_list
-        url_dict = url_dict
-        end_time = time()
-        print(end_time - start_time)
-        return company_dict, tech_list, url_dict
+    # # request wanted api
+    # # 수집한 채용 데이터를 저장한 api에 요청으로 보내서 데이터를 저장하는 함수
+    # def wanted_request(self):
+    #     start_time = time()
+    #     i = 1
+    #     tech_list = []
+    #     company_dict = {}
+    #     url_dict = {}
+    #     r = requests.get(self.wanted_contents_url.format(1))
+    #     while r.json()['next'] is not None:
+    #         r = requests.get(self.wanted_contents_url.format(i))
+    #         content_data = r.json()['results']
+    #         for j in range(len(content_data)):
+    #             content = content_data[j]['content']
+    #             company = content_data[j]['company']
+    #             content = content_data[j]['content']
+    #             url = content_data[j]['url']
+    #             if company in url_dict.keys():
+    #                 url_dict[company].append(url)
+    #             else:
+    #                 url_dict[company] = [url]
+    #             company_dict[company] = list(set(self.alpha_list(content)))
+    #             temp_list = self.alpha_list(content)
+    #             tech_list = tech_list + temp_list
+    #         i += 1
+    #     comapny_dict = company_dict
+    #     tech_list = tech_list
+    #     url_dict = url_dict
+    #     end_time = time()
+    #     print(end_time - start_time)
+    #     return company_dict, tech_list, url_dict
 
-    # 데이터 프로세싱 시작 전에 모델에서 필요한 데이터 모두 가져오기
-    def wanted_model(self):
+    ##### BASE PROCESSING: 다른 작업 전에 전처리 #####
+    def get_wanted_model_data(self):
         # 관련 컨텐츠 모델을 가져온다
         wanted_content_model = WantedContent.objects.using('contents').all()
-        # 채워넣을 빈 데이터를 만든다
-        title_list = [] # 백엔드, 프론트엔드, 서버 등등 개발자의 총 공고수를 계산하기 위해 필요
-        tech_list = [] # 회사들이 사용하는 모든 기술의 집합
-        company_dict = {} # 각 회사별로 어떤 기술을 사용하는지 모음
-        url_dict = {} # 회사별 공고 url 모음
+        return wanted_content_model
+
+    ##################
+    ##### DATA 1 #####
+    ##################
+    def create_hire_title_list(self, wanted_content_data):
+        # 백엔드, 프론트엔드, 서버 등등 개발자의 총 공고수를 계산하기 위해 필요
+        # wanted_content_data --> WantedContent.objects.all()해서 가져온 데이터
+        hire_title_list = []
         # 루프를 돌려 필요한 데이터를 위에서 만든 빈 데이터 안에 채워넣어 준다
-        for i in range(len(wanted_content_model)):
+        for i in range(len(wanted_content_data)):
+            title = wanted_content_data[i].title
+            hire_title_list.append(title)
+        return hire_title_list
+
+    ##################
+    ##### DATA 2 #####
+    ##################
+    def create_tech_list(self, wanted_content_data):
+        # 회사들이 사용하는 모든 기술의 집합
+        tech_list = []
+        for i in range(len(wanted_content_data)):
+            content = wanted_content_data[i].content
+            temp_list = self.alpha_list(content) # 우선은 그냥 알파 리스트를 만들어서 모두 합친다
+            # 위와 같이 하면 하나의 채용 공고에서 같은 기술이 여러번 언급될 수 있다는 문제점이 있다
+            tech_list = tech_list + temp_list
+        return tech_list
+
+    ##################
+    ##### DATA 3 #####
+    ##################
+    def create_company_tech_dict(self, wanted_content_data):
+        # 각 회사별로 어떤 기술을 사용하는지 모음
+        company_tech_dict = {}
+        for i in range(len(wanted_content_data)):
+            content = wanted_content_data[i].content
+            company = wanted_content_model[i].company
+            company_tech_dict[company] = list(set(self.alpha_list(content)))
+        return company_tech_dict
+
+    ##################
+    ##### DATA 4 #####
+    ##################
+    def create_company_hire_url_dict(self, wanted_content_data):
+        # 회사별 공고 url 모음
+        company_hire_url_dict = {}
+        for i in range(len(wanted_content_data)):
             title = wanted_content_model[i].title
-            content = wanted_content_model[i].content
             company = wanted_content_model[i].company
             url = wanted_content_model[i].url
-            title_list.append(title)
-            if company in url_dict.keys():
-                url_dict[company][title] = url
+            if company in company_hire_url_dict.keys():
+                company_hire_url_dict[company][title] = url
             else:
-                url_dict[company] = dict()
-                url_dict[company][title] = url
-            company_dict[company] = list(set(self.alpha_list(content)))
-            temp_list = self.alpha_list(content)
-            tech_list = tech_list + temp_list
-        company_dict = company_dict
-        tech_list = tech_list
-        url_dict = url_dict
-        return title_list, company_dict, tech_list, url_dict
+                company_hire_url_dict[company] = dict()
+                company_hire_url_dict[company][title] = url
+        return company_hire_url_dict
 
     def check_if_skill_in_title(self, title, skill_list):
         skill_exists = 0
@@ -125,8 +157,11 @@ class WantedProcessor(object):
                 skill_exists = 1
         return skill_exists
 
-    def create_skill_category_count(self, title_list):
-        skill_count = {
+    ##################
+    ##### DATA 5 #####
+    ##################
+    def create_skill_category_count(self, hire_title_list):
+        skill_category_count = {
             'Frontend': 0,
             'Backend': 0,
             'iOS': 0,
@@ -137,7 +172,7 @@ class WantedProcessor(object):
             'Blockchain': 0
         }
 
-        for title in title_list:
+        for title in hire_title_list:
             frontend = self.check_if_skill_in_title(title, FRONTEND_NAMES)
             backend = self.check_if_skill_in_title(title, BACKEND_NAMES)
             ios = self.check_if_skill_in_title(title, IOS_NAMES)
@@ -148,27 +183,27 @@ class WantedProcessor(object):
             blockchain = self.check_if_skill_in_title(title, BLOCKCHAIN_NAMES)
 
             if frontend == 1:
-                skill_count['Frontend'] += 1
+                skill_category_count['Frontend'] += 1
             if backend == 1:
-                skill_count['Backend'] += 1
+                skill_category_count['Backend'] += 1
             if ios == 1:
-                skill_count['iOS'] += 1
+                skill_category_count['iOS'] += 1
             if android == 1:
-                skill_count['Android'] += 1
+                skill_category_count['Android'] += 1
             if server == 1:
-                skill_count['Server'] += 1
+                skill_category_count['Server'] += 1
             if devops == 1:
-                skill_count['Devops'] += 1
+                skill_category_count['Devops'] += 1
             if data == 1:
-                skill_count['Data Scientist'] += 1
+                skill_category_count['Data Scientist'] += 1
             if blockchain == 1:
-                skill_count['Blockchain'] += 1
+                skill_category_count['Blockchain'] += 1
 
-        return skill_count
+        return skill_category_count
 
     # 예외 처리 함수 : 중복되지만 key 값이 다른 함수 합치기
     def exception_process(self, data, parent_key, child_key, func):
-        if parent_key and child_key in data.keys():
+        if (parent_key in data.keys()) and (child_key in data.keys()):
             if func == 'sum':
                 data[parent_key] = data[parent_key] + data[child_key]
                 del data[child_key]
@@ -179,13 +214,16 @@ class WantedProcessor(object):
             pass
         return data
 
-    # Wanted Data 전처리
-    def refine_data(self, tech_list):
-        filtered_sentence = [w for w in tech_list if not w.lower() in self.stop_words]
+    ##################
+    ##### DATA 6 #####
+    ##################
+    def create_sorted_skill_hire_count_list(self, tech_list):
+        # stop word들을 모두 제거한다
         total_dict = {}
-        count_tech = Counter(filtered_sentence)
+        filtered_sentence = [w for w in tech_list if not w.lower() in self.stop_words]
+        count_tech = Counter(filtered_sentence) # 기술별 언급 빈도수를 카운터로 계산하다
 
-        # 빈도수가 10개 이하인 값 버리기
+        # 빈도수가 10개 이하인 값 버리기 --> 무의미하다고 판단
         for key, value in count_tech.items():
             if value <= 10:
                 continue
@@ -196,22 +234,32 @@ class WantedProcessor(object):
             total_dict = self.exception_process(total_dict, exception[0], exception[1], 'sum')
         total_dict = self.exception_process(total_dict, 'web', 'amazon', 'sub')
 
-        sorted_x = sorted(total_dict.items(), key=operator.itemgetter(1), reverse=True)
+        sorted_skill_hire_count_list = sorted(total_dict.items(), key=operator.itemgetter(1), reverse=True)
         # data type is like [('aws', 514), ('api', 470),  ('web', 350), ('ios', 349),  ('c', 344), ('js', 328), ('python', 324),]
+        return sorted_skill_hire_count_list
+
+    ##################
+    ##### DATA 7 #####
+    ##################
+    def create_clean_sorted_top_200_skill_hire_count_list(self, tech_list):
+        sorted_skill_hire_count_list = self.create_sorted_skill_hire_count_list(tech_list)
+
         # extract top 200
-        sorted_data = sorted_x[0:200]
-        js1 = js2 = amazon = web = rest = react = node = angular = vue = front = back = 0
-        refine_skill = []
-        exception_dict = {}
+        sorted_data = sorted_skill_hire_count_list[0:200]
+
+        clean_sorted_top_200_skill_hire_count_list = []
+
         for d in sorted_data:
-            temp_dict = {}
             if d[0] in WANTED_PASS_LIST:
                 continue
             temp_tuple = (d[0], d[1])
-            refine_skill.append(temp_tuple)
-        final_sorted_list = sorted(refine_skill, key=lambda tup: tup[1], reverse=True)
-        return final_sorted_list
+            clean_sorted_top_200_skill_hire_count_list.append(temp_tuple) # TOP 200 기술을 들고와서 예외처리하면 이전에 소팅된 것을 다시 소팅해줘야 한다
+        clean_sorted_top_200_skill_hire_count_list = sorted(clean_sorted_top_200_skill_hire_count_list, key=lambda tup: tup[1], reverse=True)
+        return clean_sorted_top_200_skill_hire_count_list
 
+    ##################
+    ##### DATA 8 #####
+    ##################
     # 많이 사용되는 기술 list와 기술별 사용회사 리스트를 뽑는 것을 수행하는 함수
     def create_topskill_list(self, final_sorted_list, tech_list):
         top_skill = []
@@ -227,6 +275,7 @@ class WantedProcessor(object):
             top_skill.append(chart_dict)
         return top_skill
 
+    ##### DATA 8 #####
     def create_wantedjob_list(self, final_sorted_list, company_dict):
         wanted_job = {}
         tech_compare_list = []
@@ -267,6 +316,11 @@ class WantedProcessor(object):
         db_data.save(using='contents')
         print('{} saved'.format(name))
 
+    def make_data_for_website(self, wantedjob_list):
+        main_wantedjob_list = wantedjob_list[:5] # 상위 5개 기술만 가져오기
+        # for wantedjob in main_wantedjob_list:
+
+
     def save_data_to_cache(self, redis_client, key, value):
         redis_client.delete(key)
         redis_client.set(key, json.dumps(value))
@@ -288,7 +342,7 @@ class WantedProcessor(object):
         self.save_data_to_cache(redis_client, 'WANTED_TOP_6_FOCUSED_SKILL:COUNT_CHART_DATA', )
 
         # 원티드 직군별 공고수 바차트 데이터:
-        # 데이터 형식: [{'y', 'color'}, ... ]
+        # 데이터 형식: [{'y', 'color'}, ... ] --> 공고수 최대값인 데이터는 색상 다르게, 나머지는 모두 회색
         self.save_data_to_cache(redis_client, 'WANTED_HIRE:COUNT_CHART_DATA', skill_count)
 
         # 원티드 직군에서 사용 기술 공고수 바차트 데이터:
