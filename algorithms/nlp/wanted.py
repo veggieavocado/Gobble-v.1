@@ -383,7 +383,7 @@ class WantedProcessor(object):
             wantedjob_table_list.append([data[0], data[1][0], data[1][1]])
         return wantedjob_table_list
 
-    def make_data_for_website(self, wantedjob_list):
+    def make_data_for_website(self):
         # 캐싱할 데이터 정의내리는 곳/저장까지
         ### 메인 색상: 초록(#00C73C), 파랑(#0183DA), 빨강(#FF385A), 주황(#FF6813), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
         redis_client = redis.Redis(host=IP_ADDRESS,
@@ -397,7 +397,10 @@ class WantedProcessor(object):
         clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
         # 원티드 데이터 페이지 메인 랭크 테이블 데이터: 상위 5개 기술 기술명, 점유율, 공고수, 관련스타트업 4개
         wantedjob_table_list = self.create_wantedjob_table_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
+        topskill_highcharts_list = self.create_topskill_highcharts_list(clean_sorted_top_200_skill_hire_count_list)
+
         self.save_data_to_cache(redis_client, 'WANTED_SKILL_RANK_TABLE_DATA', wantedjob_table_list)
+        self.save_data_to_cache(redis_client, 'WANTED_TOP_SKILL_HIGHCHARTS_DATA', topskill_highcharts_list)
 
     # def cache_wanted_page_data(self, skill_count):
     #     redis_client = redis.Redis(host=IP_ADDRESS,

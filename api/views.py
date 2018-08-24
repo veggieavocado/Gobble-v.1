@@ -112,10 +112,12 @@ class WantedPageDataAPIView(APIView):
         redis_client = redis.Redis(host=IP_ADDRESS,
                                    port=6379,
                                    password='molecularredispassword')
-                                   
+
         wantedjob_table_list = redis_client.get('WANTED_SKILL_RANK_TABLE_DATA')
+        topskill_highcharts_list = redis_client.get('WANTED_TOP_SKILL_HIGHCHARTS_DATA')
 
         result = {
             'WANTED_SKILL_RANK_TABLE_DATA': wantedjob_table_list,
+            'WANTED_TOP_SKILL_HIGHCHARTS_DATA': topskill_highcharts_list,
         }
         return Response(result, status=status.HTTP_200_OK)

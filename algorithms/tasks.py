@@ -47,21 +47,7 @@ def process_wanted_data():
     w.save_data_to_db('SKILL_COUNTS', skill_count)
 
 @shared_task
-def topskill_highcharts_data():
+def make_wanted_data_and_cache():
     w = WantedProcessor()
-    wanted_content_data = w.get_wanted_model_data()
-    tech_list = w.create_tech_list(wanted_content_data)
-    clean_sorted_top_200_skill_hire_count_list = w.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
-    data = w.create_topskill_highcharts_list(clean_sorted_top_200_skill_hire_count_list)
-    print(data)
-
-@shared_task
-def full_wantedjob_list():
-    w = WantedProcessor()
-    wanted_content_data = w.get_wanted_model_data()
-    company_tech_dict = w.create_company_tech_dict(wanted_content_data)
-    print(company_tech_dict)
-    tech_list = w.create_tech_list(wanted_content_data)
-    clean_sorted_top_200_skill_hire_count_list = w.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
-    wantedjob_table_list = w.create_wantedjob_table_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
-    print(wantedjob_table_list)
+    w.make_data_for_website()
+    return True
