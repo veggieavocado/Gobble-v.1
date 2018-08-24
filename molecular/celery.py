@@ -2,7 +2,8 @@ from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 from datetime import timedelta
-from gobble.tasks import naver_realtime_new, naver_major_new
+
+# from gobble.tasks import naver_realtime_new, naver_major_new
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'molecular.settings')
 
@@ -19,14 +20,14 @@ def debug_task(self):
 from celery.schedules import crontab
 
 app.conf.beat_schedule = {
-    'naver_major_new': {
-        'task': 'gobble.tasks.naver_major_new',
-        'schedule': timedelta(hours=3),
-        'args': (),
-    },
-    'naver_realtime_new': {
-        'task': 'gobble.tasks.naver_realtime_new',
-        'schedule': timedelta(minutes=1),
-        'args': (),
-    }
+    # 'naver_major_new': {
+    #     'task': 'gobble.tasks.naver_major_new',
+    #     'schedule': timedelta(hours=3),
+    #     'args': (),
+    # },
+    # 'naver_realtime_new': {
+    #     'task': 'gobble.tasks.naver_realtime_new',
+    #     'schedule': timedelta(minutes=1),
+    #     'args': (),
+    # }
 }
