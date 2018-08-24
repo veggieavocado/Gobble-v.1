@@ -1,18 +1,11 @@
 from django.test import TestCase
-from django.core.urlresolvers import reverse
 
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from rest_framework_jwt import utils, views
-from rest_framework_jwt.compat import get_user_model
-from rest_framework_jwt.settings import api_settings, DEFAULTS
-
 import json, os
 from django.utils.encoding import smart_text
 from contents.models import WantedUrl, WantedContent, WantedData
-from accounts.models import Profile
-User = get_user_model()
 
 from tests.url_endpoints import URL
 
@@ -23,22 +16,7 @@ class WantedContetnsAPITestCase(TestCase):
 
     def setUp(self):
         print('Starting Sentence API test')
-        self.client = APIClient(enforce_csrf_checks=True)
-        self.username = 'lee'
-        self.email = 'lee@gmail.com'
-        self.password = '123123123'
-        # create new user to send post requests
-        self.user = {
-            'username': self.username,
-            'email': self.email,
-            'password': self.password,
-        }
-
-        # 테스트용 user-data 생성
-        self.userdata =  {
-            'username': self.username,
-            'password': self.password,
-        }
+        self.client = APIClient()
         # create sentence data
         self.wanted_contents = {
                                 "title": "iOS 개발자",
@@ -76,29 +54,6 @@ class WantedContetnsAPITestCase(TestCase):
                                     {'name': 'Ruby', 'y': 105}]"
                             }
 
-        response = self.client.post(
-            URL['user_create_url'],
-            self.user,
-            format='json'
-        )
-        self.assertEqual(User.objects.all().count(), 1, msg='user data not created properly')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.first().username, self.user['username'])
-        self.assertEqual(User.objects.first().email, self.user['email'])
-
-        response = self.client.post(
-            URL['get_jwt_token'],
-            json.dumps(self.userdata),
-            content_type='application/json'
-        )
-
-        self.token = response.data['token']
-        response_content = json.loads(smart_text(response.content))
-        decoded_payload = utils.jwt_decode_handler(response_content['token'])
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(decoded_payload['username'], self.username)
-
-
     def test_wanted_contents_api(self):
         # post
         # unauthorized case
@@ -107,22 +62,12 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_contents,
             format='json',
         )
-        self.assertEqual(WantedContent.objects.all().count(), 0, msg='user data not created properly')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        # authorized case
-        response = self.client.post(
-            URL['job_contents'],
-            self.wanted_contents,
-            HTTP_AUTHORIZATION='JWT ' + self.token,
-            format='json',
-        )
         self.assertEqual(WantedContent.objects.all().count(), 1, msg='user data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # authorized case
         response = self.client.get(
             URL['job_contents'],
-            HTTP_AUTHORIZATION='JWT ' + self.token,
             format='json',
         )
         data = response.json()['results'][0]
@@ -139,22 +84,12 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_urls,
             format='json',
         )
-        self.assertEqual(WantedUrl.objects.all().count(), 0, msg='user data not created properly')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        # authorized case
-        response = self.client.post(
-            URL['wanted_url'],
-            self.wanted_urls,
-            HTTP_AUTHORIZATION='JWT ' + self.token,
-            format='json',
-        )
-        self.assertEqual(WantedUrl.objects.all().count(), 1, msg='user data not created properly')
+        self.assertEqual(WantedUrl.objects.all().count(), 1, msg='wanted data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # authorized case
         response = self.client.get(
             URL['wanted_url'],
-            HTTP_AUTHORIZATION='JWT ' + self.token,
             format='json',
         )
         data = response.json()['results'][0]
@@ -170,22 +105,12 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_data,
             format='json',
         )
-        self.assertEqual(WantedData.objects.all().count(), 0, msg='user data not created properly')
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        # authorized case
-        response = self.client.post(
-            URL['wanted_data'],
-            self.wanted_data,
-            HTTP_AUTHORIZATION='JWT ' + self.token,
-            format='json',
-        )
-        self.assertEqual(WantedData.objects.all().count(), 1, msg='user data not created properly')
+        self.assertEqual(WantedData.objects.all().count(), 1, msg='wanted data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         # authorized case
         response = self.client.get(
             URL['wanted_data'],
-            HTTP_AUTHORIZATION='JWT ' + self.token,
             format='json',
         )
         data = response.json()['results'][0]

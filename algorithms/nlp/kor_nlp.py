@@ -32,6 +32,10 @@ def korean_text_pre(sentence, func):
         result = filtered_sentence
     elif func == 'noun':
         result = noun
+    elif func == 'noun_count':
+        freq = Counter(noun)
+        word_freq = sorted(dict(freq).items(), key=operator.itemgetter(1), reverse=True)
+        result = [{'name':name,'y':value} for name, value in word_freq]
     return result
 
 test_data = '금융감독원이 삼성바이오로직스 회계처리 위반에 대한 재감리에 돌입했다.15일 금융당국에 따르면 금감원은 최근 재감리를 시작하고 최대한 빨리 진행하기로 했다. 특히 연말까지는 감리 조치안을 마무리한다는 방침이다.'
@@ -40,3 +44,4 @@ korean_text_pre(test_data, 'token')
 korean_text_pre(test_data, 'count')
 korean_text_pre(test_data, 'pos')
 korean_text_pre(test_data, 'noun')
+korean_text_pre(test_data, 'noun_count')

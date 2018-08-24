@@ -1,9 +1,8 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
+from rest_framework import permissions, generics
 from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
-
 from molecular.settings import PRODUCTION
 
 from contents.models import (
@@ -29,7 +28,7 @@ from utils.paginations import StandardResultPagination
 class WantedContentAPIView(generics.ListCreateAPIView):
     queryset = WantedContent.objects.using('contents').all()
     serializer_class = WantedContentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
@@ -58,7 +57,7 @@ class WantedContentDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = WantedContent.objects.all()
     serializer_class = WantedContentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
 
 
 # WantedUrl view GET POST
@@ -66,9 +65,9 @@ class WantedUrlAPIView(generics.ListCreateAPIView):
     if PRODUCTION == True:
         queryset = WantedUrl.objects.using('contents').all().order_by('id')
     else:
-            queryset = WantedUrl.objects.all().order_by('id')
+        queryset = WantedUrl.objects.all().order_by('id')
     serializer_class = WantedUrlSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
@@ -80,7 +79,7 @@ class WantedUrlDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = WantedUrl.objects.all()
     serializer_class = WantedUrlSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
 
 
 # WantedUrl view GET POST
@@ -90,7 +89,7 @@ class WantedDataAPIView(generics.ListCreateAPIView):
     else:
         queryset = WantedData.objects.all().order_by('id')
     serializer_class = WantedDataSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
@@ -102,7 +101,7 @@ class WantedDataDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = WantedData.objects.all()
     serializer_class = WantedDataSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
 
 
 # WantedContent view GET POST
@@ -112,7 +111,7 @@ class NaverContentAPIView(generics.ListCreateAPIView):
     else:
         queryset = NaverContent.objects.all()
     serializer_class = NaverContentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
@@ -141,7 +140,7 @@ class NaverContentDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = NaverContent.objects.all()
     serializer_class = NaverContentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
 
 
 class NaverDataAPIView(generics.ListCreateAPIView):
@@ -150,7 +149,7 @@ class NaverDataAPIView(generics.ListCreateAPIView):
     else:
         queryset = NaverData.objects.all().order_by('id')
     serializer_class = NaverDataSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
@@ -162,4 +161,4 @@ class NaverDataDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = NaverData.objects.all()
     serializer_class = NaverDataSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)

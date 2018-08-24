@@ -66,13 +66,14 @@ class NaverMajorCrawler(Crawler):
             soup = self.html_parser(req)
             url = self.fin_nhn.format(url)
             title = self.soup_find(soup, 'h3').text.replace('\n','').replace('\t','').strip()
-            if url in checklist:
+            checkurl = re.sub(r'&page=\d+$', '', url)
+            if checkurl in checklist:
                 print('Already up-to-date.')
                 continue
             upload_time = self.soup_find(soup, 'span', {'class':'article_date'}).text
             contents = self.soup_find(soup, 'div', {'class':'articleCont'}).text.replace('\n','').replace('\t','').strip()
             media = self.soup_find(soup, 'span', {'class':'press'}).img['title']
-            data_dict = {'title':title, 'media':media, 'url':url, 'data_type':'M', 'upload_time': upload_time, 'contents':contents}
+            data_dict = {'title':title, 'media':media, 'url':checkurl, 'data_type':'M', 'upload_time': upload_time, 'contents':contents}
             data_list.append(data_dict)
         print(len(data_list))
         return data_list
