@@ -10,7 +10,7 @@ SECRET_KEY = 'fv($0e1to(r8ddlr4e802nl7i#42sm0k8b(mc-4oor8el%^z-p'
 DEBUG = True
 
 # NAVER Crawler DB 사용 설정
-PRODUCTION = True
+PRODUCTION = False
 
 if TESTING == 'True':
     # Travis 테스트 작동 중이면, 시크릿 키가 없기 때문에 비밀 환경변수 사용

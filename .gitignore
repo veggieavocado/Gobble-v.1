@@ -3,7 +3,6 @@ __pycache__/
 migrations/
 configs/
 *.pyc
-db.sqlite3
 .pytest_cache/
 api_env/
 data/
