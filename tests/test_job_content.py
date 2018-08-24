@@ -58,7 +58,7 @@ class WantedContetnsAPITestCase(TestCase):
         # post
         # unauthorized case
         response = self.client.post(
-            URL['job_contents'],
+            URL['wanted_job_contents'],
             self.wanted_contents,
             format='json',
         )
@@ -67,9 +67,10 @@ class WantedContetnsAPITestCase(TestCase):
 
         # authorized case
         response = self.client.get(
-            URL['job_contents'],
+            URL['wanted_job_contents'],
             format='json',
         )
+        print(response.json())
         data = response.json()['results'][0]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data['title'], "iOS 개발자")
@@ -92,6 +93,7 @@ class WantedContetnsAPITestCase(TestCase):
             URL['wanted_url'],
             format='json',
         )
+        print(response)
         data = response.json()['results'][0]
         data_split = data['urls'].split(',')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

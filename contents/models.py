@@ -34,7 +34,7 @@ class WantedData(models.Model):
     created = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return "{}".format(self.data)
+        return "{}".format(self.data_name)
 
 
 class NaverContent(models.Model):
@@ -57,4 +57,26 @@ class NaverData(models.Model):
     created = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return "{}".format(self.data)
+        return "{}".format(self.data_name)
+
+
+class KreditJobContent(models.Model):
+    date = models.CharField(max_length=10, blank=True, null=True)
+    company = models.CharField(max_length=50, blank=True, null=True)
+    industry = models.CharField(max_length=100, blank=True, null=True)
+    starting_income = models.IntegerField(blank=True, null=True)
+    average_income = models.IntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return "{}".format(self.date)
+
+
+class GoogleTrendsContent(models.Model):
+    date = models.CharField(max_length=10, blank=True, null=True)
+    keyword = models.CharField(max_length=50, blank=True, null=True)
+    starting_date = models.CharField(max_length=10, blank=True, null=True)
+    starting_date = models.CharField(max_length=10, blank=True, null=True)
+    data = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return "{}".format(self.date)

@@ -5,6 +5,8 @@ from contents.models import (
     WantedData,
     NaverData,
     NaverContent,
+    KreditJobContent,
+    GoogleTrendsContent,
     )
 
 
@@ -35,4 +37,16 @@ class NaverContentSerializer(serializers.ModelSerializer):
 class NaverDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = NaverData
+        fields = "__all__"
+
+
+class KreditJobContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KreditJobContent
+        fields = "__all__"
+
+
+class GoogleTrendsContentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GoogleTrendsContent
         fields = "__all__"
