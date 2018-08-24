@@ -177,8 +177,8 @@ class WantedProcessor(object):
             'iOS': 0,
             'Android': 0,
             'Server': 0,
-            'Devops': 0,
-            'Data Scientist': 0,
+            'DevOps': 0,
+            'Data Engineer': 0,
             'Blockchain': 0
         }
 
@@ -203,9 +203,9 @@ class WantedProcessor(object):
             if server == 1:
                 skill_category_count['Server'] += 1
             if devops == 1:
-                skill_category_count['Devops'] += 1
+                skill_category_count['DevOps'] += 1
             if data == 1:
-                skill_category_count['Data Scientist'] += 1
+                skill_category_count['Data Engineer'] += 1
             if blockchain == 1:
                 skill_category_count['Blockchain'] += 1
 
