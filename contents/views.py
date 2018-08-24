@@ -11,6 +11,8 @@ from contents.models import (
     WantedData,
     NaverContent,
     NaverData,
+    KreditJobContent,
+    GoogleTrendsContent,
     )
 
 from contents.serializers import (
@@ -19,6 +21,8 @@ from contents.serializers import (
     WantedDataSerializer,
     NaverDataSerializer,
     NaverContentSerializer,
+    KreditJobContentSerializer,
+    GoogleTrendsContentSerializer,
 )
 
 from utils.paginations import StandardResultPagination
@@ -40,6 +44,7 @@ class WantedContentAPIView(generics.ListCreateAPIView):
         title_by = self.request.GET.get('title')
         company_by = self.request.GET.get('company')
         loaction_by = self.request.GET.get('location')
+        created_by = self.request.GET.get('created')
 
         if title_by:
             queryset = queryset.filter(title=title_by)
@@ -47,6 +52,8 @@ class WantedContentAPIView(generics.ListCreateAPIView):
             queryset = queryset.filter(company=company_by)
         if loaction_by:
             queryset = queryset.filter(location=loaction_by)
+        if created_by:
+            queryset = queryset.filter(location=created_by)
         return queryset
 
 
@@ -161,4 +168,76 @@ class NaverDataDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     else:
         queryset = NaverData.objects.all()
     serializer_class = NaverDataSerializer
+    permission_classes = (permissions.AllowAny,)
+
+
+# KreditJobContent view GET POST
+class KreditJobContentAPIView(generics.ListCreateAPIView):
+    if PRODUCTION == True:
+        queryset = KreditJobContent.objects.using('contents').all()
+    else:
+        queryset = KreditJobContent.objects.all()
+    serializer_class = KreditJobContentSerializer
+    permission_classes = (permissions.AllowAny,)
+    pagination_class = StandardResultPagination
+    filter_backends = [SearchFilter, OrderingFilter]
+
+    def get_queryset(self, *args, **kwargs):
+        if PRODUCTION == True:
+            queryset = KreditJobContent.objects.using('contents').all().order_by('id')
+        else:
+            queryset = KreditJobContent.objects.all().order_by('id')
+        date_by = self.request.GET.get('date')
+        company_by = self.request.GET.get('company')
+
+        if date_by:
+            queryset = queryset.filter(title=date_by)
+        if company_by:
+            queryset = queryset.filter(media=company_by)
+        return queryset
+
+
+# KreditJobContent view GET POST
+class KreditJobContentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    if PRODUCTION == True:
+        queryset = KreditJobContent.objects.using('contents').all()
+    else:
+        queryset = KreditJobContent.objects.all()
+    serializer_class = KreditJobContentSerializer
+    permission_classes = (permissions.AllowAny,)
+
+
+# KreditJobContent view GET POST
+class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
+    if PRODUCTION == True:
+        queryset = GoogleTrendsContent.objects.using('contents').all()
+    else:
+        queryset = GoogleTrendsContent.objects.all()
+    serializer_class = GoogleTrendsContentSerializer
+    permission_classes = (permissions.AllowAny,)
+    pagination_class = StandardResultPagination
+    filter_backends = [SearchFilter, OrderingFilter]
+
+    def get_queryset(self, *args, **kwargs):
+        if PRODUCTION == True:
+            queryset = GoogleTrendsContent.objects.using('contents').all().order_by('id')
+        else:
+            queryset = GoogleTrendsContent.objects.all().order_by('id')
+        date_by = self.request.GET.get('date')
+        keyword_by = self.request.GET.get('keyword')
+
+        if date_by:
+            queryset = queryset.filter(title=date_by)
+        if keyword_by:
+            queryset = queryset.filter(media=keyword_by)
+        return queryset
+
+
+# KreditJobContent view GET POST
+class GoogleTrendsContentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    if PRODUCTION == True:
+        queryset = GoogleTrendsContent.objects.using('contents').all()
+    else:
+        queryset = GoogleTrendsContent.objects.all()
+    serializer_class = GoogleTrendsContentSerializer
     permission_classes = (permissions.AllowAny,)
