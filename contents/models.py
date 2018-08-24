@@ -64,8 +64,8 @@ class KreditJobContent(models.Model):
     company = models.CharField(max_length=50, blank=True, null=True)
     industry = models.CharField(max_length=100, blank=True, null=True)
     location = models.CharField(max_length=10, blank=True, null=True)
-    starting_income = models.IntegerField(blank=True, null=True)
-    average_income = models.IntegerField(blank=True, null=True)
+    starting_income = models.CharField(max_length=10, blank=True, null=True)
+    average_income = models.CharField(max_length=10, blank=True, null=True)
     created = models.DateField(auto_now_add=True)
     updated = models.DateField(auto_now=True)
 
