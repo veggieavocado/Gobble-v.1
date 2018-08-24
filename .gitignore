@@ -10,3 +10,4 @@ crypt_key.py
 veggieavocado_keypair.pem
 deeplearning_test/
 .ipynb_checkpoints/
+db.sqlite3

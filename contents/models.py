@@ -61,22 +61,25 @@ class NaverData(models.Model):
 
 
 class KreditJobContent(models.Model):
-    date = models.CharField(max_length=10, blank=True, null=True)
     company = models.CharField(max_length=50, blank=True, null=True)
     industry = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=10, blank=True, null=True)
     starting_income = models.IntegerField(blank=True, null=True)
     average_income = models.IntegerField(blank=True, null=True)
+    created = models.DateField(auto_now_add=True)
+    updated = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "{}".format(self.date)
+        return "{}".format(self.created)
 
 
 class GoogleTrendsContent(models.Model):
-    date = models.CharField(max_length=10, blank=True, null=True)
     keyword = models.CharField(max_length=50, blank=True, null=True)
     starting_date = models.CharField(max_length=10, blank=True, null=True)
     starting_date = models.CharField(max_length=10, blank=True, null=True)
     data = models.TextField(blank=True, null=True)
-
+    created = models.DateField(auto_now_add=True)
+    updated = models.DateField(auto_now=True)
+    
     def __str__(self):
-        return "{}".format(self.date)
+        return "{}".format(self.created)

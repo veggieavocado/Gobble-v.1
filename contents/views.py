@@ -187,13 +187,16 @@ class KreditJobContentAPIView(generics.ListCreateAPIView):
             queryset = KreditJobContent.objects.using('contents').all().order_by('id')
         else:
             queryset = KreditJobContent.objects.all().order_by('id')
-        date_by = self.request.GET.get('date')
+        date_by = self.request.GET.get('created')
         company_by = self.request.GET.get('company')
+        location_by = self.request.GET.get('location')
 
         if date_by:
             queryset = queryset.filter(title=date_by)
         if company_by:
             queryset = queryset.filter(media=company_by)
+        if location_by:
+            queryset = queryset.filter(media=location_by)
         return queryset
 
 
@@ -223,7 +226,7 @@ class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
             queryset = GoogleTrendsContent.objects.using('contents').all().order_by('id')
         else:
             queryset = GoogleTrendsContent.objects.all().order_by('id')
-        date_by = self.request.GET.get('date')
+        date_by = self.request.GET.get('created')
         keyword_by = self.request.GET.get('keyword')
 
         if date_by:
