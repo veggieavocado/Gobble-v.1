@@ -1,7 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
-
+from datetime import timedelta
+from gobble.tasks import naver_realtime_new, naver_major_new
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'molecular.settings')
 
