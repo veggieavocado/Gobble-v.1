@@ -211,6 +211,17 @@ class WantedProcessor(object):
 
         return skill_category_count
 
+    ####################
+    ##### DATA 5.5 #####
+    ####################
+    def create_highcharts_skill_category_count(self, skill_category_count):
+        skills_list = ['Frontend', 'Backend', 'iOS', 'Android', 'Server', 'DevOps', 'Data Engineer', 'Blockchain']
+        count_list = []
+        for skill in skills_list:
+            count_list.append(skill_category_count[skill])
+        highcharts_skill_category_count = [skills_list, count_list]
+        return highcharts_skill_category_count
+
     # 예외 처리 함수 : 중복되지만 key 값이 다른 함수 합치기
     def exception_process(self, data, parent_key, child_key, func):
         if (parent_key in data.keys()) and (child_key in data.keys()):
@@ -391,16 +402,24 @@ class WantedProcessor(object):
                                    password='molecularredispassword')
 
         wanted_content_data = self.get_wanted_model_data()
-        wanted_content_data = self.get_wanted_model_data()
-        company_tech_dict = self.create_company_tech_dict(wanted_content_data)
+
+        hire_title_list = self.create_hire_title_list(wanted_content_data)
         tech_list = self.create_tech_list(wanted_content_data)
+        company_tech_dict = self.create_company_tech_dict(wanted_content_data)
+
+        skill_category_count = self.create_skill_category_count(hire_title_list)
         clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
+
         # 원티드 데이터 페이지 메인 랭크 테이블 데이터: 상위 5개 기술 기술명, 점유율, 공고수, 관련스타트업 4개
         wantedjob_table_list = self.create_wantedjob_table_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
+        # 원티드 기술점유율 도넛 하이차트 데이터:
         topskill_highcharts_list = self.create_topskill_highcharts_list(clean_sorted_top_200_skill_hire_count_list)
+        # 원티드 직군별 공고수 바차트 데이터:
+        highcharts_skill_category_count = self.create_highcharts_skill_category_count(skill_category_count)
 
         self.save_data_to_cache(redis_client, 'WANTED_SKILL_RANK_TABLE_DATA', wantedjob_table_list)
         self.save_data_to_cache(redis_client, 'WANTED_TOP_SKILL_HIGHCHARTS_DATA', topskill_highcharts_list)
+        self.save_data_to_cache(redis_client, 'WANTED_POSITION_COUNT_HIGHCHARTS_DATA', highcharts_skill_category_count)
 
     # def cache_wanted_page_data(self, skill_count):
     #     redis_client = redis.Redis(host=IP_ADDRESS,

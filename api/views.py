@@ -115,9 +115,11 @@ class WantedPageDataAPIView(APIView):
 
         wantedjob_table_list = redis_client.get('WANTED_SKILL_RANK_TABLE_DATA')
         topskill_highcharts_list = redis_client.get('WANTED_TOP_SKILL_HIGHCHARTS_DATA')
+        highcharts_skill_category_count = redis_client.get('WANTED_POSITION_COUNT_HIGHCHARTS_DATA')
 
         result = {
             'WANTED_SKILL_RANK_TABLE_DATA': wantedjob_table_list,
             'WANTED_TOP_SKILL_HIGHCHARTS_DATA': topskill_highcharts_list,
+            'WANTED_POSITION_COUNT_HIGHCHARTS_DATA': highcharts_skill_category_count,
         }
         return Response(result, status=status.HTTP_200_OK)
