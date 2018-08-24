@@ -50,6 +50,16 @@ class WantedProcessor(object):
         self.wanted_contents_url = 'http://45.76.213.33:3000/api/v1/contents/job_contents/?page={}'
         print("Wanted Processor ready!")
 
+    def save_data_to_db(self, name, data):
+        str_data = json.dumps(data)
+        db_data = WantedData(data_name=name, data=str_data)
+        db_data.save(using='contents')
+        print('{} saved'.format(name))
+
+    def save_data_to_cache(self, redis_client, key, value):
+        redis_client.delete(key)
+        redis_client.set(key, json.dumps(value))
+
     # 순수 함수
     # Text에서 영어만 추출하는 함수이다. Wanted 채용 공고란 에서 기술 리스트는 대부분 영어로 되어 있기 때문이다.
     def alpha_list(self, sentence):
@@ -129,7 +139,7 @@ class WantedProcessor(object):
         company_tech_dict = {}
         for i in range(len(wanted_content_data)):
             content = wanted_content_data[i].content
-            company = wanted_content_model[i].company
+            company = wanted_content_data[i].company
             company_tech_dict[company] = list(set(self.alpha_list(content)))
         return company_tech_dict
 
@@ -140,9 +150,9 @@ class WantedProcessor(object):
         # 회사별 공고 url 모음
         company_hire_url_dict = {}
         for i in range(len(wanted_content_data)):
-            title = wanted_content_model[i].title
-            company = wanted_content_model[i].company
-            url = wanted_content_model[i].url
+            title = wanted_content_data[i].title
+            company = wanted_content_data[i].company
+            url = wanted_content_data[i].url
             if company in company_hire_url_dict.keys():
                 company_hire_url_dict[company][title] = url
             else:
@@ -260,11 +270,15 @@ class WantedProcessor(object):
     ##################
     ##### DATA 8 #####
     ##################
-    # 많이 사용되는 기술 list와 기술별 사용회사 리스트를 뽑는 것을 수행하는 함수
-    def create_topskill_list(self, final_sorted_list, tech_list):
-        top_skill = []
-        for d in final_sorted_list:
+    def create_topskill_highcharts_list(self, clean_sorted_top_200_skill_hire_count_list):
+        # 많이 사용되는 기술 list와 기술별 사용회사 리스트를 뽑는 것을 수행하는 함수
+        # 하이차트 들어가는 데이터 형식대로 포맷팅하는 함수
+        # 형식: [ {'name': 'Javascript', 'y': 1, 'sliced': 'true', 'selected': 'true' }, {'name': 'AWS', 'y': 1}, ... ]
+        topskill_highcharts_list = []
+        first_item = 1
+        for d in clean_sorted_top_200_skill_hire_count_list:
             chart_dict = {}
+            # 먼저 예외처리를 한다 --> 이름을 수정해야할 수도 있기 때문에
             if d[0] in CHANGE_NAME_DICT.keys():
                 chart_dict['name'] = CHANGE_NAME_DICT[d[0]]
             elif d[0] in CAPITAL_NAMES:
@@ -272,31 +286,42 @@ class WantedProcessor(object):
             else:
                 chart_dict['name'] = d[0].title()
             chart_dict['y'] = d[1]
-            top_skill.append(chart_dict)
-        return top_skill
+            chart_dict['states'] = {
+                'select': { 'color': '#FF385A' },
+                'hover': { 'color': '#d1d1d1' }
+            }
+            if first_item == 1: # 첫 번째 데이터값이면 selected, sliced를 true로 설정한다
+                chart_dict['sliced'] = 1
+                chart_dict['selected'] = 1 # 1로 해도 true와 같다
+            topskill_highcharts_list.append(chart_dict)
+            first_item = 0
+        return topskill_highcharts_list
 
-    ##### DATA 8 #####
-    def create_wantedjob_list(self, final_sorted_list, company_dict):
+    ##################
+    ##### DATA 9 #####
+    ##################
+    def create_full_wantedjob_list(self, clean_sorted_top_200_skill_hire_count_list, company_tech_dict):
         wanted_job = {}
         tech_compare_list = []
-        for d in final_sorted_list:
+        for d in clean_sorted_top_200_skill_hire_count_list:
             if d[0] in WANTED_PASS_LIST:
+                # 불필요한 데이터는 먼저 걸러낸다
                 continue
-            wanted_job[d[0]] = [d[1],[]]
+            wanted_job[d[0]] = [d[1],[]] # 두 번째 리스트값에는 회사 이름을 넣을 것이다
             tech_compare_list.append(d[0])
 
         # make job_list
-        for k in company_dict.keys():
+        for k in company_tech_dict.keys():
             for tech in tech_compare_list:
-                if tech in company_dict[k]:
+                if tech in company_tech_dict[k]:
                     wanted_job[tech][1].append(k)
-        result_dict = {}
 
         total_list = list(CHANGE_NAME_DICT.keys()) + CAPITAL_NAMES
         # pop 이되면 데이터가 순서상 마지막으로 추가 되어서 문제가 발생하여
         # 반복문을 두개로 쪼개서 실행
         for key, v in wanted_job.items():
             if key not in total_list:
+                # 예외처리를 따로 할 필요가 없으면, 첫 단어만 대문자로 바꿔서 저장한다
                 wanted_job[key.title()] = wanted_job.pop(key)
         for key, v in wanted_job.items():
             if key in CHANGE_NAME_DICT.keys():
@@ -305,50 +330,97 @@ class WantedProcessor(object):
                 wanted_job[key.upper()] = wanted_job.pop(key)
         # pop으로 dict의 key 값을 변환해주어서 다시 순서를 sort해줘야함
         sorted_tuple = sorted(wanted_job.items(), key=operator.itemgetter(1), reverse=True)
+
+        # 최종 결과물을 담을 딕셔너리를 만든다
+        full_wantedjob_list = {}
+
         # sort 된값은 tuple로 저장되므로 다시 dict 형태로 바꾸어야 한다.
         for data in sorted_tuple:
-            result_dict[data[0]] = data[1]
-        return result_dict
+            full_wantedjob_list[data[0]] = data[1]
+        return full_wantedjob_list
 
-    def save_data_to_db(self, name, data):
-        str_data = json.dumps(data)
-        db_data = WantedData(data_name=name, data=str_data)
-        db_data.save(using='contents')
-        print('{} saved'.format(name))
+    ###################
+    ##### DATA 10 #####
+    ###################
+    def create_wantedjob_table_list(self, clean_sorted_top_200_skill_hire_count_list, company_tech_dict):
+        # 원티드 데이터 페이지 테이블 부분에 들어가는 데이터이다
+        # 리턴되어야 하는 형식: [name, hire_count, [comp1, comp2, comp3, comp4]] --> comp는 무조건 4개
+        wanted_job = {}
+        tech_compare_list = []
+        for d in clean_sorted_top_200_skill_hire_count_list:
+            if d[0] in WANTED_PASS_LIST:
+                # 불필요한 데이터는 먼저 걸러낸다
+                continue
+            wanted_job[d[0]] = [d[1],[]] # 두 번째 리스트값에는 회사 이름을 넣을 것이다
+            tech_compare_list.append(d[0])
+
+        # make job_list
+        for k in company_tech_dict.keys():
+            for tech in tech_compare_list:
+                if tech in company_tech_dict[k]:
+                    wanted_job[tech][1].append(k)
+
+        total_list = list(CHANGE_NAME_DICT.keys()) + CAPITAL_NAMES
+        # pop 이되면 데이터가 순서상 마지막으로 추가 되어서 문제가 발생하여
+        # 반복문을 두개로 쪼개서 실행
+        for key, v in wanted_job.items():
+            if key not in total_list:
+                # 예외처리를 따로 할 필요가 없으면, 첫 단어만 대문자로 바꿔서 저장한다
+                wanted_job[key.title()] = wanted_job.pop(key)
+        for key, v in wanted_job.items():
+            if key in CHANGE_NAME_DICT.keys():
+                wanted_job[CHANGE_NAME_DICT[key]] = wanted_job.pop(key)
+            elif key in CAPITAL_NAMES:
+                wanted_job[key.upper()] = wanted_job.pop(key)
+        # pop으로 dict의 key 값을 변환해주어서 다시 순서를 sort해줘야함
+        sorted_tuple = sorted(wanted_job.items(), key=operator.itemgetter(1), reverse=True)
+
+        # 최종 결과물을 담을 리스트를 만든다
+        wantedjob_table_list = []
+
+        # sort 된값은 tuple로 저장된다. 리스트 형식으로 변형한다
+        for data in sorted_tuple:
+            wantedjob_table_list.append([data[0], data[1][0], data[1][1]])
+        return wantedjob_table_list
 
     def make_data_for_website(self, wantedjob_list):
-        main_wantedjob_list = wantedjob_list[:5] # 상위 5개 기술만 가져오기
-        # for wantedjob in main_wantedjob_list:
-
-
-    def save_data_to_cache(self, redis_client, key, value):
-        redis_client.delete(key)
-        redis_client.set(key, json.dumps(value))
-
-    def cache_wanted_page_data(self, skill_count):
+        # 캐싱할 데이터 정의내리는 곳/저장까지
+        ### 메인 색상: 초록(#00C73C), 파랑(#0183DA), 빨강(#FF385A), 주황(#FF6813), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
         redis_client = redis.Redis(host=IP_ADDRESS,
                                    port=6379,
                                    password='molecularredispassword')
 
-        # 캐싱할 데이터 정의내리는 곳/저장까지
-        ### 메인 색상: 초록(#00C73C), 파랑(#0183DA), 빨강(#FF385A), 주황(#FF6813), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
-
+        wanted_content_data = self.get_wanted_model_data()
+        wanted_content_data = self.get_wanted_model_data()
+        company_tech_dict = self.create_company_tech_dict(wanted_content_data)
+        tech_list = self.create_tech_list(wanted_content_data)
+        clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
         # 원티드 데이터 페이지 메인 랭크 테이블 데이터: 상위 5개 기술 기술명, 점유율, 공고수, 관련스타트업 4개
-        self.save_data_to_cache(redis_client, 'WANTED_TOP_5_SKILL:COUNT:COMPS_LIST', main_wantedjob_table_list)
+        wantedjob_table_list = self.create_wantedjob_table_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
+        self.save_data_to_cache(redis_client, 'WANTED_SKILL_RANK_TABLE_DATA', wantedjob_table_list)
 
-        # 원티드 기술점유율 도넛 하이차트 데이터: { 'name', 'y', 'showInLegend', 'states': {{'select': 'color'}, {'hover': 'color'}} }
-        # select - color: #FF385A, hover - color: #D1D1D1
-        # 100개 기술 모두의 정보가 들어가야하지만, 상위 6개만 showInLegend: true, 나머지는 false
-        self.save_data_to_cache(redis_client, 'WANTED_TOP_6_FOCUSED_SKILL:COUNT_CHART_DATA', )
-
-        # 원티드 직군별 공고수 바차트 데이터:
-        # 데이터 형식: [{'y', 'color'}, ... ] --> 공고수 최대값인 데이터는 색상 다르게, 나머지는 모두 회색
-        self.save_data_to_cache(redis_client, 'WANTED_HIRE:COUNT_CHART_DATA', skill_count)
-
-        # 원티드 직군에서 사용 기술 공고수 바차트 데이터:
-        # 데이터 형식: [{'name', 'data': [{'y', 'color'}, ... ]}, ... ]
-        self.save_data_to_cache(redis_client, 'WANTED_HIRE_SKILLS_COUNT_CHART_DATA', )
-
-        self.save_data_to_cache(redis_client, 'WANTED_TOTAL_SKILL_COUNT_COMPS_LIST', wantedjob_list)
-
-        self.save_data_to_cache(redis_client, 'WANTED_HIRE_URL_DATA', url_dict)
+    # def cache_wanted_page_data(self, skill_count):
+    #     redis_client = redis.Redis(host=IP_ADDRESS,
+    #                                port=6379,
+    #                                password='molecularredispassword')
+    #
+    #
+    #
+    #     self.save_data_to_cache(redis_client, 'WANTED_TOP_5_SKILL:COUNT:COMPS_LIST', main_wantedjob_table_list)
+    #
+    #     # 원티드 기술점유율 도넛 하이차트 데이터: { 'name', 'y', 'showInLegend', 'states': {{'select': 'color'}, {'hover': 'color'}} }
+    #     # select - color: #FF385A, hover - color: #D1D1D1
+    #     # 100개 기술 모두의 정보가 들어가야하지만, 상위 6개만 showInLegend: true, 나머지는 false
+    #     self.save_data_to_cache(redis_client, 'WANTED_TOP_6_FOCUSED_SKILL:COUNT_CHART_DATA', )
+    #
+    #     # 원티드 직군별 공고수 바차트 데이터:
+    #     # 데이터 형식: [{'y', 'color'}, ... ] --> 공고수 최대값인 데이터는 색상 다르게, 나머지는 모두 회색
+    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE:COUNT_CHART_DATA', skill_count)
+    #
+    #     # 원티드 직군에서 사용 기술 공고수 바차트 데이터:
+    #     # 데이터 형식: [{'name', 'data': [{'y', 'color'}, ... ]}, ... ]
+    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE_SKILLS_COUNT_CHART_DATA', )
+    #
+    #     self.save_data_to_cache(redis_client, 'WANTED_TOTAL_SKILL_COUNT_COMPS_LIST', wantedjob_list)
+    #
+    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE_URL_DATA', url_dict)

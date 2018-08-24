@@ -9,6 +9,8 @@ from algorithms.tasks import (
     word_pos_tag_task,
 )
 
+import redis, json
+from molecular.settings import IP_ADDRESS
 
 #*** UPDATE: 20180816 ***#
 class TestAPIView(APIView):
@@ -101,3 +103,19 @@ class TaskAPIView(APIView):
         else:
             result_json = {'status': 'GOOD', 'result': result}
             return Response(result_json, status=status.HTTP_200_OK)
+
+
+class WantedPageDataAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        redis_client = redis.Redis(host=IP_ADDRESS,
+                                   port=6379,
+                                   password='molecularredispassword')
+                                   
+        wantedjob_table_list = redis_client.get('WANTED_SKILL_RANK_TABLE_DATA')
+
+        result = {
+            'WANTED_SKILL_RANK_TABLE_DATA': wantedjob_table_list,
+        }
+        return Response(result, status=status.HTTP_200_OK)
