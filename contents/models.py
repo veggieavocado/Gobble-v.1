@@ -5,6 +5,11 @@ TYPES = (
     ('R', 'REAL_TIME'),
 )
 
+GEO = (
+    ('KR', 'KOREA'),
+    ('US', 'USA'),
+)
+
 # Create your models here.
 class WantedContent(models.Model):
     title = models.CharField(max_length=50, blank=True, null=True)
@@ -78,8 +83,9 @@ class GoogleTrendsContent(models.Model):
     starting_date = models.CharField(max_length=10, blank=True, null=True)
     end_date = models.CharField(max_length=10, blank=True, null=True)
     data = models.TextField(blank=True, null=True)
+    geo = models.CharField(max_length=2, choices=GEO, blank=True, null=True)
     created = models.DateField(auto_now_add=True)
     updated = models.DateField(auto_now=True)
 
     def __str__(self):
-        return "{}".format(self.created)
+        return "{} {}".format(self.keyword, self.geo)

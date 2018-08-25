@@ -288,11 +288,14 @@ class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
             queryset = GoogleTrendsContent.objects.all().order_by('id')
         created_by = self.request.GET.get('created')
         keyword_by = self.request.GET.get('keyword')
+        geo_by = self.request.GET.get('geo')
 
         if created_by:
             queryset = queryset.filter(title=created_by)
         if keyword_by:
             queryset = queryset.filter(media=keyword_by)
+        if geo_by:
+            queryset = queryset.filter(media=geo_by)
         return queryset
 
     def perform_create(self, serializer):
@@ -301,7 +304,8 @@ class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
         data_inst = GoogleTrendsContent(keyword=data['keyword'],
                                         starting_date=data['starting_date'],
                                         end_date=data['end_date'],
-                                        data=data['data'])
+                                        data=data['data'],
+                                        geo=data['geo'],)
         data_inst.save(using='contents')
 
 
