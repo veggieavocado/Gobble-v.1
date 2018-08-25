@@ -406,6 +406,7 @@ class WantedProcessor(object):
         hire_title_list = self.create_hire_title_list(wanted_content_data)
         tech_list = self.create_tech_list(wanted_content_data)
         company_tech_dict = self.create_company_tech_dict(wanted_content_data)
+        company_hire_url_dict = self.create_company_hire_url_dict(wanted_content_data)
 
         skill_category_count = self.create_skill_category_count(hire_title_list)
         clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
@@ -417,9 +418,14 @@ class WantedProcessor(object):
         # 원티드 직군별 공고수 바차트 데이터:
         highcharts_skill_category_count = self.create_highcharts_skill_category_count(skill_category_count)
 
+        ### 기술 목록: 구글 트렌드 요청 위해서 필요한 데이터 ###
+        google_trends_tech_list = company_hire_url_dict.keys()
+        
         self.save_data_to_cache(redis_client, 'WANTED_SKILL_RANK_TABLE_DATA', wantedjob_table_list)
         self.save_data_to_cache(redis_client, 'WANTED_TOP_SKILL_HIGHCHARTS_DATA', topskill_highcharts_list)
         self.save_data_to_cache(redis_client, 'WANTED_POSITION_COUNT_HIGHCHARTS_DATA', highcharts_skill_category_count)
+
+        self.save_data_to_cache(redis_client, 'WANTED_GOOGLE_TRENDS_TECH_LIST_DATA', google_trends_tech_list)
 
     # def cache_wanted_page_data(self, skill_count):
     #     redis_client = redis.Redis(host=IP_ADDRESS,
