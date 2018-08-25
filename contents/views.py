@@ -199,6 +199,16 @@ class KreditJobContentAPIView(generics.ListCreateAPIView):
             queryset = queryset.filter(media=location_by)
         return queryset
 
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = KreditJobContent(company=data['company'],
+                                     industry=data['industry'],
+                                     location=data['location'],
+                                     starting_income=data['starting_income'],
+                                     average_income=data['average_income']) # data.average_income과 같은 형식 적용 안 됨
+        data_inst.save(using='contents')
+
 
 # KreditJobContent view GET POST
 class KreditJobContentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
