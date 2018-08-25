@@ -9,6 +9,8 @@ from contents.models import WantedUrl, WantedContent, WantedData
 
 from tests.url_endpoints import URL
 
+from molecular.settings import PRODUCTION
+
 class WantedContetnsAPITestCase(TestCase):
     '''
     Wanted Contents REST API testing module
@@ -17,6 +19,7 @@ class WantedContetnsAPITestCase(TestCase):
     def setUp(self):
         print('Starting Sentence API test')
         self.client = APIClient()
+        self.production = PRODUCTION
         # create sentence data
         self.wanted_contents = {
                                 "title": "iOS 개발자",
@@ -62,15 +65,17 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_contents,
             format='json',
         )
-        self.assertEqual(WantedContent.objects.all().count(), 1, msg='user data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        if self.production == True:
+            self.assertEqual(WantedContent.objects.using('contents').all().count(), 1, msg='user data not created properly')
+        else:
+            self.assertEqual(WantedContent.objects.all().count(), 1, msg='user data not created properly')
 
         # authorized case
         response = self.client.get(
             URL['wanted_job_contents'],
             format='json',
         )
-        print(response.json())
         data = response.json()['results'][0]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(data['title'], "iOS 개발자")
@@ -85,8 +90,11 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_urls,
             format='json',
         )
-        self.assertEqual(WantedUrl.objects.all().count(), 1, msg='wanted data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        if self.production == True:
+            self.assertEqual(WantedUrl.objects.using('contents').all().count(), 1, msg='wanted data not created properly')
+        else:
+            self.assertEqual(WantedUrl.objects.all().count(), 1, msg='wanted data not created properly')
 
         # authorized case
         response = self.client.get(
@@ -107,8 +115,11 @@ class WantedContetnsAPITestCase(TestCase):
             self.wanted_data,
             format='json',
         )
-        self.assertEqual(WantedData.objects.all().count(), 1, msg='wanted data not created properly')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        if self.production == True:
+            self.assertEqual(WantedData.objects.using('contents').all().count(), 1, msg='wanted data not created properly')
+        else:
+            self.assertEqual(WantedData.objects.all().count(), 1, msg='wanted data not created properly')
 
         # authorized case
         response = self.client.get(

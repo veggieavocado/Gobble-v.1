@@ -56,6 +56,16 @@ class WantedContentAPIView(generics.ListCreateAPIView):
             queryset = queryset.filter(location=created_by)
         return queryset
 
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = WantedContent(title=data['title'],
+                                  company=data['company'],
+                                  location=data['location'],
+                                  url=data['url'],
+                                  content=data['content'],)
+        data_inst.save(using='contents')
+
 
 # WantedContent view PUT DELETE
 class WantedContentDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -78,6 +88,12 @@ class WantedUrlAPIView(generics.ListCreateAPIView):
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
 
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = WantedUrl(urls=data['urls'])
+        data_inst.save(using='contents')
+
 
 # Wantedurl view PUT DELETE
 class WantedUrlDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -87,7 +103,6 @@ class WantedUrlDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
         queryset = WantedUrl.objects.all()
     serializer_class = WantedUrlSerializer
     permission_classes = (permissions.AllowAny,)
-
 
 # WantedUrl view GET POST
 class WantedDataAPIView(generics.ListCreateAPIView):
@@ -99,6 +114,24 @@ class WantedDataAPIView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
+
+    def get_queryset(self, *args, **kwargs):
+        if PRODUCTION == True:
+            queryset = WantedData.objects.using('contents').all().order_by('id')
+        else:
+            queryset = WantedData.objects.all().order_by('id')
+        data_by = self.request.GET.get('data_name')
+
+        if data_by:
+            queryset = queryset.filter(title=data_by)
+        return queryset
+
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = WantedData(data_name=data['data_name'],
+                               data=data['data'],)
+        data_inst.save(using='contents')
 
 
 # Wantedurl view PUT DELETE
@@ -130,7 +163,6 @@ class NaverContentAPIView(generics.ListCreateAPIView):
         title_by = self.request.GET.get('title')
         media_by = self.request.GET.get('media')
         data_type_by = self.request.GET.get('data_type')
-
         if title_by:
             queryset = queryset.filter(title=title_by)
         if media_by:
@@ -138,6 +170,17 @@ class NaverContentAPIView(generics.ListCreateAPIView):
         if data_type_by:
             queryset = queryset.filter(data_type=data_type_by)
         return queryset
+
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = NaverContent(title=data['title'],
+                                 media=data['media'],
+                                 upload_time=data['upload_time'],
+                                 url=data['url'],
+                                 content=data['content'],
+                                 data_type=data['data_type'],)
+        data_inst.save(using='contents')
 
 
 # WantedContent view PUT DELETE
@@ -159,6 +202,13 @@ class NaverDataAPIView(generics.ListCreateAPIView):
     permission_classes = (permissions.AllowAny,)
     pagination_class = StandardResultPagination
     filter_backends = [SearchFilter, OrderingFilter]
+
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = NaverData(data_name=data['data_name'],
+                              data=data['data'])
+        data_inst.save(using='contents')
 
 
 # Wantedurl view PUT DELETE
@@ -187,12 +237,12 @@ class KreditJobContentAPIView(generics.ListCreateAPIView):
             queryset = KreditJobContent.objects.using('contents').all().order_by('id')
         else:
             queryset = KreditJobContent.objects.all().order_by('id')
-        date_by = self.request.GET.get('created')
+        created_by = self.request.GET.get('created')
         company_by = self.request.GET.get('company')
         location_by = self.request.GET.get('location')
 
-        if date_by:
-            queryset = queryset.filter(title=date_by)
+        if created_by:
+            queryset = queryset.filter(title=created_by)
         if company_by:
             queryset = queryset.filter(media=company_by)
         if location_by:
@@ -236,14 +286,23 @@ class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
             queryset = GoogleTrendsContent.objects.using('contents').all().order_by('id')
         else:
             queryset = GoogleTrendsContent.objects.all().order_by('id')
-        date_by = self.request.GET.get('created')
+        created_by = self.request.GET.get('created')
         keyword_by = self.request.GET.get('keyword')
 
-        if date_by:
-            queryset = queryset.filter(title=date_by)
+        if created_by:
+            queryset = queryset.filter(title=created_by)
         if keyword_by:
             queryset = queryset.filter(media=keyword_by)
         return queryset
+
+    def perform_create(self, serializer):
+        # reference: https://stackoverflow.com/questions/44218424/django-rest-framework-how-to-post-when-using-listcreateapiview
+        data = self.request.data
+        data_inst = GoogleTrendsContent(keyword=data['keyword'],
+                                        starting_date=data['starting_date'],
+                                        end_date=data['end_date'],
+                                        data=data['data'])
+        data_inst.save(using='contents')
 
 
 # KreditJobContent view GET POST
