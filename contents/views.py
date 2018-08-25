@@ -53,7 +53,7 @@ class WantedContentAPIView(generics.ListCreateAPIView):
         if loaction_by:
             queryset = queryset.filter(location=loaction_by)
         if created_by:
-            queryset = queryset.filter(location=created_by)
+            queryset = queryset.filter(created=created_by)
         return queryset
 
     def perform_create(self, serializer):
@@ -242,11 +242,11 @@ class KreditJobContentAPIView(generics.ListCreateAPIView):
         location_by = self.request.GET.get('location')
 
         if created_by:
-            queryset = queryset.filter(title=created_by)
+            queryset = queryset.filter(created=created_by)
         if company_by:
-            queryset = queryset.filter(media=company_by)
+            queryset = queryset.filter(company=company_by)
         if location_by:
-            queryset = queryset.filter(media=location_by)
+            queryset = queryset.filter(location=location_by)
         return queryset
 
     def perform_create(self, serializer):
@@ -291,11 +291,11 @@ class GoogleTrendsContentAPIView(generics.ListCreateAPIView):
         geo_by = self.request.GET.get('geo')
 
         if created_by:
-            queryset = queryset.filter(title=created_by)
+            queryset = queryset.filter(created=created_by)
         if keyword_by:
-            queryset = queryset.filter(media=keyword_by)
+            queryset = queryset.filter(keyword=keyword_by)
         if geo_by:
-            queryset = queryset.filter(media=geo_by)
+            queryset = queryset.filter(geo=geo_by)
         return queryset
 
     def perform_create(self, serializer):
