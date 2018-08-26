@@ -438,20 +438,19 @@ class WantedProcessor(object):
 
             series_data = [] # 시리즈값을 받기 위한 리스트이다
             y_values = [] # 최대값 계산을 위한 리스트이다
-            for skill_list in skills[i]:
-                for skill in skills_list:
-                    data_point = {
-                        # full_wantedjob_list에서 기술 이름을 찾고 value에서 1번째 인덱스 값인 회사들 리스트의 len()을 구한다
-                        'y': len(full_wantedjob_list[skill][1]),
-                        'color': '#D1D1D1'
-                    }
-                    series_data.append(data_point)
-                    y_values.append(len(full_wantedjob_list[skill][1])) # max 숫자는 다른 색상을 주기 위해 필요
+            for skill in skills[i]:
+                data_point = {
+                    # full_wantedjob_list에서 기술 이름을 찾고 value에서 1번째 인덱스 값인 회사들 리스트의 len()을 구한다
+                    'y': len(full_wantedjob_list[skill][1]),
+                    'color': '#D1D1D1'
+                }
+                series_data.append(data_point)
+                y_values.append(len(full_wantedjob_list[skill][1])) # max 숫자는 다른 색상을 주기 위해 필요
 
-                for data_json in series_data:
-                    # y값이 최대인 기술은 색상을 다르게 표기한다
-                    if data_json['y'] == max(y_values):
-                        data_json['color'] = colors[i]
+            for data_json in series_data:
+                # y값이 최대인 기술은 색상을 다르게 표기한다
+                if data_json['y'] == max(y_values):
+                    data_json['color'] = colors[i]
 
             highcharts_data['data'] = series_data
             position_data = [highcharts_data, skills[i]]
@@ -481,8 +480,8 @@ class WantedProcessor(object):
         # 원티드 직군별 공고수 바차트 데이터:
         highcharts_skill_category_count = self.create_highcharts_skill_category_count(skill_category_count)
         # 직군별 사용 기술: 기술 사용 회사수 하이차트 데이터:
-        full_wantedjob_list = w.create_full_wantedjob_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
-        category_skill_hire_count_highcharts_data = w.create_category_skill_hire_count_highcharts_data(full_wantedjob_list)
+        full_wantedjob_list = self.create_full_wantedjob_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
+        category_skill_hire_count_highcharts_data = self.create_category_skill_hire_count_highcharts_data(full_wantedjob_list)
 
         ### 기술 목록: 구글 트렌드 요청 위해서 필요한 데이터 ###
         google_trends_tech_list = [tech['name'] for tech in topskill_highcharts_list]
