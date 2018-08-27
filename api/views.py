@@ -125,3 +125,53 @@ class WantedPageDataAPIView(APIView):
             'WANTED_GOOGLE_TRENDS_TECH_LIST_DATA': google_trends_tech_list,
         }
         return Response(result, status=status.HTTP_200_OK)
+
+
+class KreditJobAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        redis_client = redis.Redis(host=IP_ADDRESS,
+                                   port=6379,
+                                   password='molecularredispassword')
+
+        wantedjob_table_list = redis_client.get('WANTED_SKILL_RANK_TABLE_DATA')
+
+        result = {
+            'WANTED_SKILL_RANK_TABLE_DATA': wantedjob_table_list,
+        }
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class KreditJobAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        redis_client = redis.Redis(host=IP_ADDRESS,
+                                   port=6379,
+                                   password='molecularredispassword')
+
+        kredit_job_data = redis_client.get('KREDIT_JOB_DATA')
+
+        result = {
+            'KREDIT_JOB_DATA': kredit_job_data,
+        }
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class GoogleTrendsAPIView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        redis_client = redis.Redis(host=IP_ADDRESS,
+                                   port=6379,
+                                   password='molecularredispassword')
+
+        google_trends_kr = redis_client.get('GOOGLE_TRENDS_KR_DATA')
+        google_trends_us = redis_client.get('GOOGLE_TRENDS_US_DATA')
+
+        result = {
+            'GOOGLE_TRENDS_KR_DATA': google_trends_kr,
+            'GOOGLE_TRENDS_US_DATA': google_trends_us,
+        }
+        return Response(result, status=status.HTTP_200_OK)
