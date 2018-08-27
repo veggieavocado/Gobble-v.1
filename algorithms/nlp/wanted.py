@@ -394,9 +394,72 @@ class WantedProcessor(object):
             wantedjob_table_list.append([data[0], data[1][0], data[1][1]])
         return wantedjob_table_list
 
+    ###################
+    ##### DATA 11 #####
+    ###################
+    def create_category_skill_hire_count_highcharts_data(self, full_wantedjob_list):
+        categories = ['프론트엔드', '백엔드', '서버', '데브옵스', '데이터분석']
+        skills = [FRONTEND_SKILLS, BACKEND_SKILLS, SERVER_SKILLS, DEVOPS_SKILLS, DATA_SKILLS]
+        colors = ['#00C73C', '#0F9DFC', '#FF385A', '#FF6813', '#B811F9']
+        # [{
+        #     name: '백엔드',
+        #     showInLegend: false,
+        #     data: [{
+        #         y: 107,
+        #         color: '#d1d1d1'
+        #     },
+        #     {
+        #         y: 31,
+        #         color: '#d1d1d1'
+        #     },
+        #     {
+        #         y: 635,
+        #         color: '#00c73c'
+        #     },
+        #     {
+        #         y: 203,
+        #         color: '#d1d1d1'
+        #     },
+        #     {
+        #         y: 2,
+        #         color: '#d1d1d1'
+        #     }],
+        # }]
+        category_skill_hire_count_highcharts_data = [] # --> 리스트의 값들이 들어간다
+        for i in range(len(categories)):
+            position_data = [] # 0: 하이차트 데이터, 1: 하이차트 카테고리 (x축 이름)
+
+            position_name = categories[i]
+            # 기본 하이차트 데이터를 새팅한다
+            highcharts_data = {
+                'name': position_name,
+                'showInLegend': 0
+            }
+
+            series_data = [] # 시리즈값을 받기 위한 리스트이다
+            y_values = [] # 최대값 계산을 위한 리스트이다
+            for skill in skills[i]:
+                data_point = {
+                    # full_wantedjob_list에서 기술 이름을 찾고 value에서 1번째 인덱스 값인 회사들 리스트의 len()을 구한다
+                    'y': len(full_wantedjob_list[skill][1]),
+                    'color': '#D1D1D1'
+                }
+                series_data.append(data_point)
+                y_values.append(len(full_wantedjob_list[skill][1])) # max 숫자는 다른 색상을 주기 위해 필요
+
+            for data_json in series_data:
+                # y값이 최대인 기술은 색상을 다르게 표기한다
+                if data_json['y'] == max(y_values):
+                    data_json['color'] = colors[i]
+
+            highcharts_data['data'] = series_data
+            position_data = [[highcharts_data], skills[i]]
+            category_skill_hire_count_highcharts_data.append(position_data)
+        return category_skill_hire_count_highcharts_data
+
     def make_data_for_website(self):
         # 캐싱할 데이터 정의내리는 곳/저장까지
-        ### 메인 색상: 초록(#00C73C), 파랑(#0183DA), 빨강(#FF385A), 주황(#FF6813), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
+        ### 메인 색상: 초록(#00C73C), 파랑(#0183DA) (#0F9DFC), 빨강(#FF385A), 주황(#FF6813), 보라(#B811F9), 회색(#D1D1D1), 아주연한회색(#EFEFEF)
         redis_client = redis.Redis(host=IP_ADDRESS,
                                    port=6379,
                                    password='molecularredispassword')
@@ -406,7 +469,6 @@ class WantedProcessor(object):
         hire_title_list = self.create_hire_title_list(wanted_content_data)
         tech_list = self.create_tech_list(wanted_content_data)
         company_tech_dict = self.create_company_tech_dict(wanted_content_data)
-        company_hire_url_dict = self.create_company_hire_url_dict(wanted_content_data)
 
         skill_category_count = self.create_skill_category_count(hire_title_list)
         clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
@@ -417,38 +479,16 @@ class WantedProcessor(object):
         topskill_highcharts_list = self.create_topskill_highcharts_list(clean_sorted_top_200_skill_hire_count_list)
         # 원티드 직군별 공고수 바차트 데이터:
         highcharts_skill_category_count = self.create_highcharts_skill_category_count(skill_category_count)
+        # 직군별 사용 기술: 기술 사용 회사수 하이차트 데이터:
+        full_wantedjob_list = self.create_full_wantedjob_list(clean_sorted_top_200_skill_hire_count_list, company_tech_dict)
+        category_skill_hire_count_highcharts_data = self.create_category_skill_hire_count_highcharts_data(full_wantedjob_list)
 
         ### 기술 목록: 구글 트렌드 요청 위해서 필요한 데이터 ###
-        google_trends_tech_list = company_hire_url_dict.keys()
-        
+        google_trends_tech_list = [tech['name'] for tech in topskill_highcharts_list]
+
         self.save_data_to_cache(redis_client, 'WANTED_SKILL_RANK_TABLE_DATA', wantedjob_table_list)
         self.save_data_to_cache(redis_client, 'WANTED_TOP_SKILL_HIGHCHARTS_DATA', topskill_highcharts_list)
         self.save_data_to_cache(redis_client, 'WANTED_POSITION_COUNT_HIGHCHARTS_DATA', highcharts_skill_category_count)
+        self.save_data_to_cache(redis_client, 'WANTED_SKILL_HIRE_COUNT_HIGHCHARTS_DATA', category_skill_hire_count_highcharts_data)
 
         self.save_data_to_cache(redis_client, 'WANTED_GOOGLE_TRENDS_TECH_LIST_DATA', google_trends_tech_list)
-
-    # def cache_wanted_page_data(self, skill_count):
-    #     redis_client = redis.Redis(host=IP_ADDRESS,
-    #                                port=6379,
-    #                                password='molecularredispassword')
-    #
-    #
-    #
-    #     self.save_data_to_cache(redis_client, 'WANTED_TOP_5_SKILL:COUNT:COMPS_LIST', main_wantedjob_table_list)
-    #
-    #     # 원티드 기술점유율 도넛 하이차트 데이터: { 'name', 'y', 'showInLegend', 'states': {{'select': 'color'}, {'hover': 'color'}} }
-    #     # select - color: #FF385A, hover - color: #D1D1D1
-    #     # 100개 기술 모두의 정보가 들어가야하지만, 상위 6개만 showInLegend: true, 나머지는 false
-    #     self.save_data_to_cache(redis_client, 'WANTED_TOP_6_FOCUSED_SKILL:COUNT_CHART_DATA', )
-    #
-    #     # 원티드 직군별 공고수 바차트 데이터:
-    #     # 데이터 형식: [{'y', 'color'}, ... ] --> 공고수 최대값인 데이터는 색상 다르게, 나머지는 모두 회색
-    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE:COUNT_CHART_DATA', skill_count)
-    #
-    #     # 원티드 직군에서 사용 기술 공고수 바차트 데이터:
-    #     # 데이터 형식: [{'name', 'data': [{'y', 'color'}, ... ]}, ... ]
-    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE_SKILLS_COUNT_CHART_DATA', )
-    #
-    #     self.save_data_to_cache(redis_client, 'WANTED_TOTAL_SKILL_COUNT_COMPS_LIST', wantedjob_list)
-    #
-    #     self.save_data_to_cache(redis_client, 'WANTED_HIRE_URL_DATA', url_dict)
