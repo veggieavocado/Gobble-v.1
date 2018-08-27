@@ -469,6 +469,7 @@ class WantedProcessor(object):
         hire_title_list = self.create_hire_title_list(wanted_content_data)
         tech_list = self.create_tech_list(wanted_content_data)
         company_tech_dict = self.create_company_tech_dict(wanted_content_data)
+        company_hire_url_dict = w.create_company_hire_url_dict(wanted_content_data)
 
         skill_category_count = self.create_skill_category_count(hire_title_list)
         clean_sorted_top_200_skill_hire_count_list = self.create_clean_sorted_top_200_skill_hire_count_list(tech_list)
@@ -490,5 +491,6 @@ class WantedProcessor(object):
         self.save_data_to_cache(redis_client, 'WANTED_TOP_SKILL_HIGHCHARTS_DATA', topskill_highcharts_list)
         self.save_data_to_cache(redis_client, 'WANTED_POSITION_COUNT_HIGHCHARTS_DATA', highcharts_skill_category_count)
         self.save_data_to_cache(redis_client, 'WANTED_SKILL_HIRE_COUNT_HIGHCHARTS_DATA', category_skill_hire_count_highcharts_data)
+        self.save_data_to_cache(redis_client, 'WANTED_COMPANY_HIRE_URL_DATA', company_hire_url_dict)
 
         self.save_data_to_cache(redis_client, 'WANTED_GOOGLE_TRENDS_TECH_LIST_DATA', google_trends_tech_list)

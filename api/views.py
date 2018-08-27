@@ -117,6 +117,7 @@ class WantedPageDataAPIView(APIView):
         topskill_highcharts_list = redis_client.get('WANTED_TOP_SKILL_HIGHCHARTS_DATA')
         highcharts_skill_category_count = redis_client.get('WANTED_POSITION_COUNT_HIGHCHARTS_DATA')
         category_skill_hire_count_highcharts_data = redis_client.get('WANTED_SKILL_HIRE_COUNT_HIGHCHARTS_DATA')
+        company_hire_url_dict = redis_client.get('WANTED_COMPANY_HIRE_URL_DATA')
         google_trends_tech_list = redis_client.get('WANTED_GOOGLE_TRENDS_TECH_LIST_DATA')
 
         result = {
@@ -124,6 +125,7 @@ class WantedPageDataAPIView(APIView):
             'WANTED_TOP_SKILL_HIGHCHARTS_DATA': topskill_highcharts_list,
             'WANTED_POSITION_COUNT_HIGHCHARTS_DATA': highcharts_skill_category_count,
             'WANTED_SKILL_HIRE_COUNT_HIGHCHARTS_DATA': category_skill_hire_count_highcharts_data,
+            'WANTED_COMPANY_HIRE_URL_DATA': company_hire_url_dict,
             'WANTED_GOOGLE_TRENDS_TECH_LIST_DATA': google_trends_tech_list,
         }
         return Response(result, status=status.HTTP_200_OK)
