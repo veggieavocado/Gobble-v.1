@@ -453,7 +453,7 @@ class WantedProcessor(object):
                     data_json['color'] = colors[i]
 
             highcharts_data['data'] = series_data
-            position_data = [highcharts_data, skills[i]]
+            position_data = [[highcharts_data], skills[i]]
             category_skill_hire_count_highcharts_data.append(position_data)
         return category_skill_hire_count_highcharts_data
 
