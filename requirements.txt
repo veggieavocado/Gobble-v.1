@@ -33,7 +33,7 @@ paramiko==2.4.1
 pluggy==0.6.0
 psycopg2==2.7.5
 psycopg2-binary==2.7.5
-py==1.5.4
+py==1.10.0
 pyasn1==0.4.4
 pycparser==2.18
 PyNaCl==1.2.1
